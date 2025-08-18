@@ -6,22 +6,26 @@ import { ethers } from "ethers";
 
 dotenv.config();
 
-// Log private key info
+
 console.log("Private Key Loaded:", process.env.MASTER_PRIVATE_KEY ? "Yes" : "No");
 console.log("Key length:", process.env.MASTER_PRIVATE_KEY.length);
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Allow CORS from your frontend
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://drosera-quiz-phi.vercel.app"
+];
+
 app.use(cors({
-  origin: "http://127.0.0.1:5500",
+  origin: allowedOrigins,
   methods: ["GET", "POST"],
   credentials: true
 }));
 app.use(bodyParser.json());
 
-// Ethers setup
+
 const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
 const wallet = new ethers.Wallet(process.env.MASTER_PRIVATE_KEY, provider);
 const tokenAbi = [
@@ -29,7 +33,7 @@ const tokenAbi = [
 ];
 const tokenContract = new ethers.Contract(process.env.TOKEN_ADDRESS, tokenAbi, wallet);
 
-// Claim endpoint (matches your frontend)
+
 app.post("/api/claim", async (req, res) => {
   try {
     const { wallet: walletAddress, score } = req.body;
@@ -38,13 +42,13 @@ app.post("/api/claim", async (req, res) => {
       return res.status(400).json({ error: "Invalid wallet address." });
     }
 
-    // Calculate tokens
+ 
     let tokens = 3;
     if (score === 15) tokens = 15;
     else if (score >= 10) tokens = 10;
     else if (score >= 5) tokens = 5;
 
-    // Send tokens
+  
     const tx = await tokenContract.transfer(walletAddress, ethers.parseUnits(tokens.toString(), 18));
     await tx.wait();
 
@@ -59,7 +63,7 @@ app.post("/api/claim", async (req, res) => {
   }
 });
 
-// Start server
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
