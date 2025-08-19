@@ -373,11 +373,10 @@ function claimRewards(wallet) {
         </div>
     `;
     console.log("Sending to claim API:", wallet, score);
-    // Call backend with wallet + score
     fetch("/api/claim", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ wallet, score }) // score from quiz
+        body: JSON.stringify({ wallet, score }) 
     })
         .then(res => res.json())
         .then(data => {
@@ -393,8 +392,8 @@ function claimRewards(wallet) {
 
             quizScreen.innerHTML = `
             <div class="card p-4 text-center w-100" style="max-width: 500px;">
-                <h2>Success!</h2>
-                <p>${data.message}</p>
+                <h2>Congratulations!</h2>
+                <p>Sent ${data.amount} $Dexter tokens to ${data.wallet}</p>
                 <p>Trx Hash: ${data.txHash ? data.txHash : 'Check backend for transaction hash'}</p>
                 <p>Add CA: 0xFba1bc0E3d54D71Ba55da7C03c7f63D4641921B1 on Hoodi Testnet Network</p>
             </div>
