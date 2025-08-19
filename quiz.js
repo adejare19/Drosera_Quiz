@@ -301,10 +301,10 @@ function showQuestion() {
     const q = questions[currentQuestion];
     questionText.textContent = q.question;
 
-    
+
     const card = quizScreen.querySelector(".card");
     card.classList.remove("question-slide-in");
-    void card.offsetWidth; 
+    void card.offsetWidth;
     card.classList.add("question-slide-in");
 
     answersDiv.innerHTML = "";
@@ -372,26 +372,26 @@ function claimRewards(wallet) {
             <p>Sending rewards to ${wallet}.</p>
         </div>
     `;
-
+    console.log("Sending to claim API:", wallet, score);
     // Call backend with wallet + score
     fetch("/api/claim", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ wallet, score }) // score from quiz
     })
-    .then(res => res.json())
-    .then(data => {
-        if (data.error) {
-            quizScreen.innerHTML = `
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                quizScreen.innerHTML = `
                 <div class="card p-4 text-center w-100" style="max-width: 500px;">
                     <h2>Error!</h2>
                     <p>${data.error}</p>
                 </div>
             `;
-            return;
-        }
+                return;
+            }
 
-        quizScreen.innerHTML = `
+            quizScreen.innerHTML = `
             <div class="card p-4 text-center w-100" style="max-width: 500px;">
                 <h2>Success!</h2>
                 <p>${data.message}</p>
@@ -399,17 +399,17 @@ function claimRewards(wallet) {
                 <p>Add CA: 0xFba1bc0E3d54D71Ba55da7C03c7f63D4641921B1 on Hoodi Testnet Network</p>
             </div>
         `;
-        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-    })
-    .catch(err => {
-        console.error(err);
-        quizScreen.innerHTML = `
+            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        })
+        .catch(err => {
+            console.error(err);
+            quizScreen.innerHTML = `
             <div class="card p-4 text-center w-100" style="max-width: 500px;">
                 <h2>Transaction Failed!</h2>
                 <p>Something went wrong, please try again later.</p>
             </div>
         `;
-    });
+        });
 }
 
 
