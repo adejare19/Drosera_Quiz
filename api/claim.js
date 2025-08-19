@@ -1,49 +1,44 @@
-
 import { ethers } from "ethers";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+    return res.status(405).json({ error: "Only POST requests allowed" });
   }
 
   try {
-    const { wallet, score } = req.body;
+    const { address, amount } = req.body;
 
-    if (!wallet || !score) {
-      return res.status(400).json({ error: "Wallet address and score required" });
+    if (!address || !amount) {
+      return res.status(400).json({ error: "Address and amount are required" });
     }
 
-    // Validate Ethereum address
-    if (!ethers.isAddress(wallet)) {
-      return res.status(400).json({ error: "Invalid wallet address" });
+    // Load environment variables from Vercel settings
+    const privateKey = process.env.PRIVATE_KEY;
+    const rpcUrl = process.env.RPC_URL;
+    const tokenAddress = process.env.TOKEN_ADDRESS;
+
+    if (!privateKey || !rpcUrl || !tokenAddress) {
+      return res.status(500).json({ error: "Server misconfigured. Missing env variables." });
     }
 
-    
-    let reward = 3;
-    if (score >= 15) reward = 15;
-    else if (score >= 10) reward = 10;
-    else if (score >= 5) reward = 5;
+    // Provider and signer
+    const provider = new ethers.JsonRpcProvider(rpcUrl);
+    const wallet = new ethers.Wallet(privateKey, provider);
 
-    
-    const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
-    const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+    // Token contract
+    const abi = [
+      "function transfer(address to, uint256 amount) public returns (bool)"
+    ];
+    const token = new ethers.Contract(tokenAddress, abi, wallet);
 
-   
-    const contract = new ethers.Contract(
-      process.env.CONTRACT_ADDRESS,
-      ["function transfer(address to, uint amount) public returns (bool)"],
-      signer
-    );
+    // Execute transfer
+    const tx = await token.transfer(address, ethers.parseUnits(amount.toString(), 18));
+    await tx.wait();
 
-   
-    const tx = await contract.transfer(wallet, ethers.parseUnits(reward.toString(), 18));
+    return res.status(200).json({ success: true, txHash: tx.hash });
 
-    return res.status(200).json({
-      message: `Sent ${reward} tokens`,
-      txHash: tx.hash,
-    });
   } catch (error) {
-    console.error("Claim error:", error);
-    return res.status(500).json({ error: "Transaction failed", details: error.message });
+    console.error("Error in claim API:", error);
+    return res.status(500).json({ error: error.message });
   }
 }
