@@ -374,7 +374,7 @@ function claimRewards(wallet) {
     `;
 
     // Call backend with wallet + score
-    fetch("api/claim", {
+    fetch("/api/claim", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ wallet, score }) // score from quiz
